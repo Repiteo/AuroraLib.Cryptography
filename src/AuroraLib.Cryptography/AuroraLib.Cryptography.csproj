@@ -32,8 +32,5 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="HashDepot" Version="3.1.0" />
-  </ItemGroup>
 
 </Project>
