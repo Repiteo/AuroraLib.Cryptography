@@ -1,4 +1,6 @@
-﻿namespace AuroraLib.Cryptography.Hash
+﻿using System;
+
+namespace AuroraLib.Cryptography.Hash
 {
     /// <summary>
     /// Predefined CRC-32 algorithms.
@@ -19,64 +21,92 @@
 
     internal static class Crc32Info
     {
-        public static uint Polynomial(this Crc32Algorithm algorithm) => algorithm switch
+        public static uint Polynomial(this Crc32Algorithm algorithm)
         {
-            Crc32Algorithm.Default => 0x04C11DB7,
-            Crc32Algorithm.BZIP2 => 0x04C11DB7,
-            Crc32Algorithm.JAMCRC => 0x04C11DB7,
-            Crc32Algorithm.MPEG2 => 0x04C11DB7,
-            Crc32Algorithm.POSIX => 0x04C11DB7,
-            Crc32Algorithm.SATA => 0x04C11DB7,
-            Crc32Algorithm.XFER => 0x000000AF,
-            Crc32Algorithm.CRC32C => 0x1EDC6F41,
-            Crc32Algorithm.CRC32D => 0xA833982B,
-            Crc32Algorithm.CRC32Q => 0x814141AB,
-            _ => throw new NotImplementedException(),
-        };
+            switch (algorithm)
+            {
+                case Crc32Algorithm.Default:
+                case Crc32Algorithm.BZIP2:
+                case Crc32Algorithm.JAMCRC:
+                case Crc32Algorithm.MPEG2:
+                case Crc32Algorithm.POSIX:
+                case Crc32Algorithm.SATA:
+                    return 0x04C11DB7;
+                case Crc32Algorithm.XFER:
+                    return 0x000000AF;
+                case Crc32Algorithm.CRC32C:
+                    return 0x1EDC6F41;
+                case Crc32Algorithm.CRC32D:
+                    return 0xA833982B;
+                case Crc32Algorithm.CRC32Q:
+                    return 0x814141AB;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
-        public static bool Reverse(this Crc32Algorithm algorithm) => algorithm switch
+        public static bool Reverse(this Crc32Algorithm algorithm)
         {
-            Crc32Algorithm.Default => false,
-            Crc32Algorithm.BZIP2 => true,
-            Crc32Algorithm.JAMCRC => false,
-            Crc32Algorithm.MPEG2 => true,
-            Crc32Algorithm.POSIX => true,
-            Crc32Algorithm.SATA => true,
-            Crc32Algorithm.XFER => true,
-            Crc32Algorithm.CRC32C => false,
-            Crc32Algorithm.CRC32D => false,
-            Crc32Algorithm.CRC32Q => true,
-            _ => throw new NotImplementedException(),
-        };
+            switch (algorithm)
+            {
+                case Crc32Algorithm.BZIP2:
+                case Crc32Algorithm.MPEG2:
+                case Crc32Algorithm.POSIX:
+                case Crc32Algorithm.SATA:
+                case Crc32Algorithm.XFER:
+                case Crc32Algorithm.CRC32Q:
+                    return true;
+                case Crc32Algorithm.Default:
+                case Crc32Algorithm.JAMCRC:
+                case Crc32Algorithm.CRC32C:
+                case Crc32Algorithm.CRC32D:
+                    return false;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
-        public static uint Initial(this Crc32Algorithm algorithm) => algorithm switch
+        public static uint Initial(this Crc32Algorithm algorithm)
         {
-            Crc32Algorithm.Default => 0xFFFFFFFF,
-            Crc32Algorithm.BZIP2 => 0xFFFFFFFF,
-            Crc32Algorithm.JAMCRC => 0xFFFFFFFF,
-            Crc32Algorithm.MPEG2 => 0xFFFFFFFF,
-            Crc32Algorithm.POSIX => 0x00000000,
-            Crc32Algorithm.SATA => 0x52325032,
-            Crc32Algorithm.XFER => 0x00000000,
-            Crc32Algorithm.CRC32C => 0xFFFFFFFF,
-            Crc32Algorithm.CRC32D => 0xFFFFFFFF,
-            Crc32Algorithm.CRC32Q => 0x00000000,
-            _ => throw new NotImplementedException(),
-        };
+            switch (algorithm)
+            {
+                case Crc32Algorithm.Default:
+                case Crc32Algorithm.BZIP2:
+                case Crc32Algorithm.JAMCRC:
+                case Crc32Algorithm.MPEG2:
+                case Crc32Algorithm.CRC32C:
+                case Crc32Algorithm.CRC32D:
+                    return 0xFFFFFFFF;
+                case Crc32Algorithm.POSIX:
+                case Crc32Algorithm.XFER:
+                case Crc32Algorithm.CRC32Q:
+                    return 0x00000000;
+                case Crc32Algorithm.SATA:
+                    return 0x52325032;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
-        public static uint XorOut(this Crc32Algorithm algorithm) => algorithm switch
+        public static uint XorOut(this Crc32Algorithm algorithm)
         {
-            Crc32Algorithm.Default => 0xFFFFFFFF,
-            Crc32Algorithm.BZIP2 => 0xFFFFFFFF,
-            Crc32Algorithm.JAMCRC => 0x00000000,
-            Crc32Algorithm.MPEG2 => 0x00000000,
-            Crc32Algorithm.POSIX => 0xFFFFFFFF,
-            Crc32Algorithm.SATA => 0x00000000,
-            Crc32Algorithm.XFER => 0x00000000,
-            Crc32Algorithm.CRC32C => 0xFFFFFFFF,
-            Crc32Algorithm.CRC32D => 0xFFFFFFFF,
-            Crc32Algorithm.CRC32Q => 0x00000000,
-            _ => throw new NotImplementedException(),
-        };
+            switch (algorithm)
+            {
+                case Crc32Algorithm.Default:
+                case Crc32Algorithm.BZIP2:
+                case Crc32Algorithm.POSIX:
+                case Crc32Algorithm.CRC32C:
+                case Crc32Algorithm.CRC32D:
+                    return 0xFFFFFFFF;
+                case Crc32Algorithm.JAMCRC:
+                case Crc32Algorithm.MPEG2:
+                case Crc32Algorithm.SATA:
+                case Crc32Algorithm.XFER:
+                case Crc32Algorithm.CRC32Q:
+                    return 0x00000000;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
     }
 }

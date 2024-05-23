@@ -1,4 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Numerics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace AuroraLib.Cryptography.Helper
 {
@@ -12,6 +15,8 @@ namespace AuroraLib.Cryptography.Helper
         // Magic numbers for 32-bit hashing.  Copied from Murmur3.
         private const uint c1 = 0xcc9e2d51;
         private const uint c2 = 0x1b873593;
+        private const uint p1 = 0x85ebca6b;
+        private const uint p2 = 0xc2b2ae35;
 
 
         #region Hash
@@ -30,52 +35,52 @@ namespace AuroraLib.Cryptography.Helper
 
             // len > 24
             uint h = len, g = c1 * len, f = g;
-            uint a0 = Rotate32(Fetch32(input[^4..]) * c1, 17) * c2;
-            uint a1 = Rotate32(Fetch32(input[^8..]) * c1, 17) * c2;
-            uint a2 = Rotate32(Fetch32(input[^16..]) * c1, 17) * c2;
-            uint a3 = Rotate32(Fetch32(input[^12..]) * c1, 17) * c2;
-            uint a4 = Rotate32(Fetch32(input[^20..]) * c1, 17) * c2;
+            uint a0 = RotateRight(ReadUnaligned32(input.Slice(input.Length - 4)) * c1, 17) * c2;
+            uint a1 = RotateRight(ReadUnaligned32(input.Slice(input.Length - 8)) * c1, 17) * c2;
+            uint a2 = RotateRight(ReadUnaligned32(input.Slice(input.Length - 16)) * c1, 17) * c2;
+            uint a3 = RotateRight(ReadUnaligned32(input.Slice(input.Length - 12)) * c1, 17) * c2;
+            uint a4 = RotateRight(ReadUnaligned32(input.Slice(input.Length - 20)) * c1, 17) * c2;
 
             h ^= a0;
-            h = Rotate32(h, 19);
+            h = RotateRight(h, 19);
             h = h * 5 + 0xe6546b64;
             h ^= a2;
-            h = Rotate32(h, 19);
+            h = RotateRight(h, 19);
             h = h * 5 + 0xe6546b64;
 
             g ^= a1;
-            g = Rotate32(g, 19);
+            g = RotateRight(g, 19);
             g = g * 5 + 0xe6546b64;
             g ^= a3;
-            g = Rotate32(g, 19);
+            g = RotateRight(g, 19);
             g = g * 5 + 0xe6546b64;
 
             f += a4;
-            f = Rotate32(f, 19);
+            f = RotateRight(f, 19);
             f = f * 5 + 0xe6546b64;
 
-            for (var i = 0; i < (len - 1) / 20; i++)
+            for (int i = 0; i < (len - 1) / 20; i++)
             {
-                a0 = Rotate32(Fetch32(input[(20 * i)..]) * c1, 17) * c2;
-                a1 = Fetch32(input[(20 * i + 4)..]);
-                a2 = Rotate32(Fetch32(input[(20 * i + 8)..]) * c1, 17) * c2;
-                a3 = Rotate32(Fetch32(input[(20 * i + 12)..]) * c1, 17) * c2;
-                a4 = Fetch32(input[(20 * i + 16)..]);
+                a0 = RotateRight(ReadUnaligned32(input.Slice(20 * i)) * c1, 17) * c2;
+                a1 = ReadUnaligned32(input.Slice(20 * i + 4));
+                a2 = RotateRight(ReadUnaligned32(input.Slice(20 * i + 8)) * c1, 17) * c2;
+                a3 = RotateRight(ReadUnaligned32(input.Slice(20 * i + 12)) * c1, 17) * c2;
+                a4 = ReadUnaligned32(input.Slice(20 * i + 16));
 
                 h ^= a0;
-                h = Rotate32(h, 18);
+                h = RotateRight(h, 18);
                 h = h * 5 + 0xe6546b64;
 
                 f += a1;
-                f = Rotate32(f, 19);
-                f = f * c1;
+                f = RotateRight(f, 19);
+                f *= c1;
 
                 g += a2;
-                g = Rotate32(g, 18);
+                g = RotateRight(g, 18);
                 g = g * 5 + 0xe6546b64;
 
                 h ^= a3 + a1;
-                h = Rotate32(h, 19);
+                h = RotateRight(h, 19);
                 h = h * 5 + 0xe6546b64;
 
                 g ^= a4;
@@ -89,19 +94,19 @@ namespace AuroraLib.Cryptography.Helper
                 Permute3(ref f, ref h, ref g);
             }
 
-            g = Rotate32(g, 11) * c1;
-            g = Rotate32(g, 17) * c1;
+            g = RotateRight(g, 11) * c1;
+            g = RotateRight(g, 17) * c1;
 
-            f = Rotate32(f, 11) * c1;
-            f = Rotate32(f, 17) * c1;
+            f = RotateRight(f, 11) * c1;
+            f = RotateRight(f, 17) * c1;
 
-            h = Rotate32(h + g, 19);
+            h = RotateRight(h + g, 19);
             h = h * 5 + 0xe6546b64;
-            h = Rotate32(h, 17) * c1;
+            h = RotateRight(h, 17) * c1;
 
-            h = Rotate32(h + f, 19);
+            h = RotateRight(h + f, 19);
             h = h * 5 + 0xe6546b64;
-            h = Rotate32(h, 17) * c1;
+            h = RotateRight(h, 17) * c1;
 
             return h;
         }
@@ -112,7 +117,7 @@ namespace AuroraLib.Cryptography.Helper
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong Hash64(ReadOnlySpan<byte> input, ulong seed0, ulong seed1)
-            => HashLen16(Hash64(input) - seed0, seed1);
+            => Hash128to64(Hash64(input) - seed0, seed1);
 
         internal static ulong Hash64(ReadOnlySpan<byte> input)
         {
@@ -128,45 +133,46 @@ namespace AuroraLib.Cryptography.Helper
             // For strings over 64 bytes we hash the end first, and then as we
             // loop we keep 56 bytes of state: v, w, x, y, and z.
 
-            ulong x = Fetch64(input, input.Length - 40);
-            ulong y = Fetch64(input, input.Length - 16) + Fetch64(input, input.Length - 56);
-            ulong z = HashLen16(
-                Fetch64(input, input.Length - 48) + (ulong)input.Length,
-                Fetch64(input, input.Length - 24));
+            ulong x = ReadUnaligned64(input, input.Length - 40);
+            ulong y = ReadUnaligned64(input, input.Length - 16) + ReadUnaligned64(input, input.Length - 56);
+            ulong z = Hash128to64(
+                ReadUnaligned64(input, input.Length - 48) + (ulong)input.Length,
+                ReadUnaligned64(input, input.Length - 24));
 
-            var v = WeakHashLen32WithSeeds(input, input.Length - 64, (ulong)input.Length, z);
-            var w = WeakHashLen32WithSeeds(input, input.Length - 32, y + k1, x);
+            UInt128 v = WeakHashLen32WithSeeds(input, input.Length - 64, (ulong)input.Length, z);
+            UInt128 w = WeakHashLen32WithSeeds(input, input.Length - 32, y + k1, x);
 
-            x = x * k1 + Fetch64(input);
+            x = x * k1 + ReadUnaligned64(input);
 
             // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
 
-            var pos = 0;
-            var len = input.Length - 1 & ~63;
+            int pos = 0;
+            int len = input.Length - 1 & ~63;
             do
             {
-                x = Rotate(x + y + v.Low + Fetch64(input, pos + 8), 37) * k1;
-                y = Rotate(y + v.High + Fetch64(input, pos + 48), 42) * k1;
+                x = RotateRight(x + y + v.Low + ReadUnaligned64(input, pos + 8), 37) * k1;
+                y = RotateRight(y + v.High + ReadUnaligned64(input, pos + 48), 42) * k1;
                 x ^= w.High;
-                y += v.Low + Fetch64(input, pos + 40);
-                z = Rotate(z + w.Low, 33) * k1;
+                y += v.Low + ReadUnaligned64(input, pos + 40);
+                z = RotateRight(z + w.Low, 33) * k1;
                 v = WeakHashLen32WithSeeds(input, pos, v.High * k1, x + w.Low);
-                w = WeakHashLen32WithSeeds(input, pos + 32, z + w.High, y + Fetch64(input, pos + 16));
+                w = WeakHashLen32WithSeeds(input, pos + 32, z + w.High, y + ReadUnaligned64(input, pos + 16));
                 Swap(ref z, ref x);
 
                 pos += 64;
                 len -= 64;
             } while (len != 0);
 
-            return HashLen16(HashLen16(v.Low, w.Low) + ShiftMix(y) * k1 + z, HashLen16(v.High, w.High) + x);
+            return Hash128to64(Hash128to64(v.Low, w.Low) + ShiftMix(y) * k1 + z, Hash128to64(v.High, w.High) + x);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static UInt128 Hash128(ReadOnlySpan<byte> value)
         {
-            return value.Length >= 16
-                ? Hash128(value[16..], new UInt128(Fetch64(value[8..]) + k0, Fetch64(value)))
-                : Hash128(value, new UInt128(k1, k0));
+            if (value.Length >= 16)
+                return Hash128(value.Slice(16), new UInt128(ReadUnaligned64(value.Slice(8)) + k0, ReadUnaligned64(value)));
+            else
+                return Hash128(value, new UInt128(k1, k0));
         }
 
         internal static UInt128 Hash128(ReadOnlySpan<byte> value, UInt128 seed)
@@ -181,67 +187,67 @@ namespace AuroraLib.Cryptography.Helper
             ulong y = seed.High;
             ulong z = (ulong)len * k1;
 
-            UInt128 v = new(0, Rotate(y ^ k1, 49) * k1 + Fetch64(value));
-            v = new(Rotate(v.Low, 42) * k1 + Fetch64(value, 8), v.Low);
+            UInt128 v = new UInt128(0, RotateRight(y ^ k1, 49) * k1 + ReadUnaligned64(value));
+            v = new UInt128(RotateRight(v.Low, 42) * k1 + ReadUnaligned64(value, 8), v.Low);
 
-            UInt128 w = new(Rotate(x + Fetch64(value, 88), 53) * k1, Rotate(y + z, 35) * k1 + x);
+            UInt128 w = new UInt128(RotateRight(x + ReadUnaligned64(value, 88), 53) * k1, RotateRight(y + z, 35) * k1 + x);
 
 
             // This is the same inner loop as CityHash64(), manually unrolled.
             int s = 0;
             do
             {
-                var temp = Fetch64(value, s + 8);
-                x = Rotate(x + y + v.Low + temp, 37) * k1;
-                y = Rotate(y + v.High + Fetch64(value, s + 48), 42) * k1;
+                ulong temp = ReadUnaligned64(value, s + 8);
+                x = RotateRight(x + y + v.Low + temp, 37) * k1;
+                y = RotateRight(y + v.High + ReadUnaligned64(value, s + 48), 42) * k1;
                 x ^= w.High;
-                y += v.Low + Fetch64(value, s + 40);
-                z = Rotate(z + w.Low, 33) * k1;
+                y += v.Low + ReadUnaligned64(value, s + 40);
+                z = RotateRight(z + w.Low, 33) * k1;
                 v = WeakHashLen32WithSeeds(value, s, v.High * k1, x + w.Low);
-                w = WeakHashLen32WithSeeds(value, s + 32, z + w.High, y + Fetch64(value, s + 16));
+                w = WeakHashLen32WithSeeds(value, s + 32, z + w.High, y + ReadUnaligned64(value, s + 16));
                 Swap(ref z, ref x);
                 s += 64;
-                x = Rotate(x + y + v.Low + Fetch64(value, s + 8), 37) * k1;
-                y = Rotate(y + v.High + Fetch64(value, s + 48), 42) * k1;
+                x = RotateRight(x + y + v.Low + ReadUnaligned64(value, s + 8), 37) * k1;
+                y = RotateRight(y + v.High + ReadUnaligned64(value, s + 48), 42) * k1;
                 x ^= w.High;
-                y += v.Low + Fetch64(value, s + 40);
-                z = Rotate(z + w.Low, 33) * k1;
+                y += v.Low + ReadUnaligned64(value, s + 40);
+                z = RotateRight(z + w.Low, 33) * k1;
                 v = WeakHashLen32WithSeeds(value, s, v.High * k1, x + w.Low);
-                w = WeakHashLen32WithSeeds(value, s + 32, z + w.High, y + Fetch64(value, s + 16));
+                w = WeakHashLen32WithSeeds(value, s + 32, z + w.High, y + ReadUnaligned64(value, s + 16));
                 Swap(ref z, ref x);
                 s += 64;
                 len -= 128;
 
             } while (len >= 128);
 
-            x += Rotate(v.Low + z, 49) * k0;
-            y = y * k0 + Rotate(w.High, 37);
-            z = z * k0 + Rotate(w.Low, 27);
-            w = new(w.High, w.Low * 9);
-            v = new(v.High, v.Low * k0);
+            x += RotateRight(v.Low + z, 49) * k0;
+            y = y * k0 + RotateRight(w.High, 37);
+            z = z * k0 + RotateRight(w.Low, 27);
+            w = new UInt128(w.High, w.Low * 9);
+            v = new UInt128(v.High, v.Low * k0);
 
             // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
             for (int tail = 0; tail < len;)
             {
                 tail += 32;
 
-                y = Rotate(x + y, 42) * k0 + v.High;
-                w = new(w.High, w.Low + Fetch64(value, s + len - tail + 16));
+                y = RotateRight(x + y, 42) * k0 + v.High;
+                w = new UInt128(w.High, w.Low + ReadUnaligned64(value, s + len - tail + 16));
                 x = x * k0 + w.Low;
-                z += w.High + Fetch64(value, s + len - tail);
-                w = new(w.High + v.Low, w.Low);
+                z += w.High + ReadUnaligned64(value, s + len - tail);
+                w = new UInt128(w.High + v.Low, w.Low);
                 v = WeakHashLen32WithSeeds(value, s + len - tail, v.Low + z, v.High);
-                v = new(v.High, v.Low * k0);
+                v = new UInt128(v.High, v.Low * k0);
             }
 
 
             // At this point our 56 bytes of state should contain more than
             // enough information for a strong 128-bit hash.  We use two
             // different 56-byte-to-8-byte hashes to get a 16-byte final result.
-            x = HashLen16(x, v.Low);
-            y = HashLen16(y + z, w.Low);
+            x = Hash128to64(x, v.Low);
+            y = Hash128to64(y + z, w.Low);
 
-            return new UInt128(HashLen16(x + v.High, w.High) + y, HashLen16(x + w.High, y + v.High));
+            return new UInt128(Hash128to64(x + v.High, w.High) + y, Hash128to64(x + w.High, y + v.High));
         }
 
         #endregion
@@ -253,37 +259,37 @@ namespace AuroraLib.Cryptography.Helper
             uint l = (uint)value.Length;
             uint b = 0u;
             uint c = 9u;
-            for (var i = 0; i < l; i++)
+            for (int i = 0; i < l; i++)
             {
                 b = b * c1 + (uint)(sbyte)value[i];
                 c ^= b;
             }
 
-            return FMix(Mur(b, Mur(l, c)));
+            return MixFinal(Mur(b, Mur(l, c)));
         }
 
         private static uint Hash32Len5to12(ReadOnlySpan<byte> value)
         {
             uint a = (uint)value.Length, b = a * 5, c = 9, d = b;
 
-            a += Fetch32(value, 0);
-            b += Fetch32(value, value.Length - 4);
-            c += Fetch32(value, value.Length >> 1 & 4);
+            a += ReadUnaligned32(value);
+            b += ReadUnaligned32(value.Slice(value.Length - 4));
+            c += ReadUnaligned32(value.Slice((value.Length >> 1 & 4)));
 
-            return FMix(Mur(c, Mur(b, Mur(a, d))));
+            return MixFinal(Mur(c, Mur(b, Mur(a, d))));
         }
 
         private static uint Hash32Len13to24(ReadOnlySpan<byte> value)
         {
-            uint a = Fetch32(value, (value.Length >> 1) - 4);
-            uint b = Fetch32(value, 4);
-            uint c = Fetch32(value, value.Length - 8);
-            uint d = Fetch32(value, value.Length >> 1);
-            uint e = Fetch32(value, 0);
-            uint f = Fetch32(value, value.Length - 4);
+            uint a = ReadUnaligned32(value, (value.Length >> 1) - 4);
+            uint b = ReadUnaligned32(value, 4);
+            uint c = ReadUnaligned32(value, value.Length - 8);
+            uint d = ReadUnaligned32(value, value.Length >> 1);
+            uint e = ReadUnaligned32(value);
+            uint f = ReadUnaligned32(value, value.Length - 4);
             uint h = (uint)value.Length;
 
-            return FMix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
+            return MixFinal(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
         }
 
         private static ulong HashLen0to16(ReadOnlySpan<byte> value)
@@ -294,29 +300,29 @@ namespace AuroraLib.Cryptography.Helper
             {
 
                 ulong mul = k2 + (ulong)len * 2;
-                ulong a = Fetch64(value) + k2;
-                ulong b = Fetch64(value, value.Length - 8);
-                ulong c = Rotate(b, 37) * mul + a;
-                ulong d = (Rotate(a, 25) + b) * mul;
+                ulong a = ReadUnaligned64(value) + k2;
+                ulong b = ReadUnaligned64(value, value.Length - 8);
+                ulong c = RotateRight(b, 37) * mul + a;
+                ulong d = (RotateRight(a, 25) + b) * mul;
 
                 return HashLen16(c, d, mul);
             }
 
             if (len >= 4)
             {
-                var mul = k2 + (ulong)len * 2;
-                ulong a = Fetch32(value);
-                return HashLen16(len + (a << 3), Fetch32(value, (int)(len - 4)), mul);
+                ulong mul = k2 + (ulong)len * 2;
+                ulong a = ReadUnaligned32(value);
+                return HashLen16(len + (a << 3), ReadUnaligned32(value, (int)(len - 4)), mul);
             }
 
             if (len > 0)
             {
-                var a = value[0];
-                var b = value[value.Length >> 1];
-                var c = value[value.Length - 1];
+                byte a = value[0];
+                int b = value[value.Length >> 1];
+                int c = value[value.Length - 1];
 
-                var y = a + ((uint)b << 8);
-                var z = len + ((uint)c << 2);
+                ulong y = a + ((uint)b << 8);
+                ulong z = len + ((uint)c << 2);
 
                 return ShiftMix(y * k2 ^ z * k0) * k2;
             }
@@ -326,33 +332,31 @@ namespace AuroraLib.Cryptography.Helper
 
         private static ulong HashLen17to32(ReadOnlySpan<byte> value)
         {
-            var len = (ulong)value.Length;
+            ulong mul = k2 + (ulong)value.Length * 2ul;
+            ulong a = ReadUnaligned64(value) * k1;
+            ulong b = ReadUnaligned64(value, 8);
+            ulong c = ReadUnaligned64(value, value.Length - 8) * mul;
+            ulong d = ReadUnaligned64(value, value.Length - 16) * k2;
 
-            var mul = k2 + len * 2ul;
-            var a = Fetch64(value) * k1;
-            var b = Fetch64(value, 8);
-            var c = Fetch64(value, value.Length - 8) * mul;
-            var d = Fetch64(value, value.Length - 16) * k2;
-
-            return HashLen16(Rotate(a + b, 43) + Rotate(c, 30) + d, a + Rotate(b + k2, 18) + c, mul);
+            return HashLen16(RotateRight(a + b, 43) + RotateRight(c, 30) + d, a + RotateRight(b + k2, 18) + c, mul);
         }
 
         private static ulong HashLen33to64(ReadOnlySpan<byte> value)
         {
             ulong mul = k2 + (ulong)value.Length * 2ul;
-            ulong a = Fetch64(value) * k2;
-            ulong b = Fetch64(value, 8);
-            ulong c = Fetch64(value, value.Length - 24);
-            ulong d = Fetch64(value, value.Length - 32);
-            ulong e = Fetch64(value, 16) * k2;
-            ulong f = Fetch64(value, 24) * 9;
-            ulong g = Fetch64(value, value.Length - 8);
-            ulong h = Fetch64(value, value.Length - 16) * mul;
+            ulong a = ReadUnaligned64(value) * k2;
+            ulong b = ReadUnaligned64(value, 8);
+            ulong c = ReadUnaligned64(value, value.Length - 24);
+            ulong d = ReadUnaligned64(value, value.Length - 32);
+            ulong e = ReadUnaligned64(value, 16) * k2;
+            ulong f = ReadUnaligned64(value, 24) * 9;
+            ulong g = ReadUnaligned64(value, value.Length - 8);
+            ulong h = ReadUnaligned64(value, value.Length - 16) * mul;
 
-            ulong u = Rotate(a + g, 43) + (Rotate(b, 30) + c) * 9;
+            ulong u = RotateRight(a + g, 43) + (RotateRight(b, 30) + c) * 9;
             ulong v = (a + g ^ d) + f + 1;
             ulong w = BSwap64((u + v) * mul) + h;
-            ulong x = Rotate(e + f, 42) + c;
+            ulong x = RotateRight(e + f, 42) + c;
             ulong y = (BSwap64((v + w) * mul) + g) * mul;
             ulong z = e + f + c;
 
@@ -363,34 +367,30 @@ namespace AuroraLib.Cryptography.Helper
 
         private static UInt128 CityMurmur(ReadOnlySpan<byte> value, UInt128 seed)
         {
-            var a = seed.Low;
-            var b = seed.High;
-            ulong c;
-            ulong d;
-
-            var len = value.Length;
-            var l = len - 16;
+            ulong a = seed.Low, b = seed.High, c, d;
+            int len = value.Length;
+            int l = len - 16;
 
             if (l <= 0)
             {  // len <= 16
                 a = ShiftMix(a * k1) * k1;
                 c = b * k1 + HashLen0to16(value);
-                d = ShiftMix(a + (len >= 8 ? Fetch64(value) : c));
+                d = ShiftMix(a + (len >= 8 ? ReadUnaligned64(value) : c));
             }
             else
             {  // len > 16
 
-                c = HashLen16(Fetch64(value, len - 8) + k1, a);
-                d = HashLen16(b + (ulong)len, c + Fetch64(value, len - 16));
+                c = Hash128to64(ReadUnaligned64(value, len - 8) + k1, a);
+                d = Hash128to64(b + (ulong)len, c + ReadUnaligned64(value, len - 16));
                 a += d;
 
-                var p = 0;
+                int p = 0;
                 do
                 {
-                    a ^= ShiftMix(Fetch64(value, p) * k1) * k1;
+                    a ^= ShiftMix(ReadUnaligned64(value, p) * k1) * k1;
                     a *= k1;
                     b ^= a;
-                    c ^= ShiftMix(Fetch64(value, p + 8) * k1) * k1;
+                    c ^= ShiftMix(ReadUnaligned64(value, p + 8) * k1) * k1;
                     c *= k1;
                     d ^= c;
 
@@ -399,19 +399,19 @@ namespace AuroraLib.Cryptography.Helper
                 } while (l > 0);
 
             }
-            a = HashLen16(a, c);
-            b = HashLen16(d, b);
-            return new UInt128(a ^ b, HashLen16(b, a));
+            a = Hash128to64(a, c);
+            b = Hash128to64(d, b);
+            return new UInt128(a ^ b, Hash128to64(b, a));
         }
 
-        private static ulong Hash128to64(UInt128 x)
+        private static ulong Hash128to64(ulong Low, ulong High)
         {
             const ulong kMul = 0x9ddfea08eb382d69UL;
 
-            var a = (x.Low ^ x.High) * kMul;
+            ulong a = (Low ^ High) * kMul;
             a ^= a >> 47;
 
-            var b = (x.High ^ a) * kMul;
+            ulong b = (High ^ a) * kMul;
             b ^= b >> 47;
             b *= kMul;
 
@@ -423,23 +423,23 @@ namespace AuroraLib.Cryptography.Helper
         private static UInt128 WeakHashLen32WithSeeds(ulong w, ulong x, ulong y, ulong z, ulong a, ulong b)
         {
             a += w;
-            b = Rotate(b + a + z, 21);
+            b = RotateRight(b + a + z, 21);
 
-            var c = a;
+            ulong c = a;
             a += x;
             a += y;
 
-            b += Rotate(a, 44);
+            b += RotateRight(a, 44);
 
             return new UInt128(b + c, a + z);
         }
         private static UInt128 WeakHashLen32WithSeeds(ReadOnlySpan<byte> value, int offset, ulong a, ulong b)
         {
             return WeakHashLen32WithSeeds(
-                Fetch64(value[offset..]),
-                Fetch64(value[(offset + 8)..]),
-                Fetch64(value[(offset + 16)..]),
-                Fetch64(value[(offset + 24)..]),
+                ReadUnaligned64(value.Slice(offset)),
+                ReadUnaligned64(value.Slice((offset + 8))),
+                ReadUnaligned64(value.Slice((offset + 16))),
+                ReadUnaligned64(value.Slice((offset + 24))),
                 a,
                 b);
         }
@@ -449,44 +449,60 @@ namespace AuroraLib.Cryptography.Helper
         #region Helper 
 
         // A 32-bit to 32-bit integer hash copied from Murmur3.
-        static uint FMix(uint h)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint MixFinal(uint h)
         {
             h ^= h >> 16;
-            h *= 0x85ebca6b;
+            h *= p1;
             h ^= h >> 13;
-            h *= 0xc2b2ae35;
+            h *= p2;
             h ^= h >> 16;
             return h;
         }
 
         // Helper from Murmur3 for combining two 32-bit values.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint Mur(uint a, uint h)
         {
             a *= c1;
-            a = Rotate32(a, 17);
+            a = RotateRight(a, 17);
             a *= c2;
             h ^= a;
-            h = Rotate32(h, 19);
+            h = RotateRight(h, 19);
             return h * 5 + 0xe6546b64;
         }
 
-        // Avoid shifting by 32: doing so yields an undefined result.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint Rotate32(uint val, int shift)
-            => shift == 0 ? val : val >> shift | val << 32 - shift;
+        private static uint RotateRight(uint value, int shift)
+#if !(NETSTANDARD || NET20_OR_GREATER)
+            => BitOperations.RotateRight(value, shift);
+#else
+            => (value >> shift) | (value << (32 - shift));
+#endif
 
-        // Avoid shifting by 64: doing so yields an undefined result.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong Rotate(ulong val, int shift)
-            => shift == 0 ? val : val >> shift | val << 64 - shift;
+        private static ulong RotateRight(ulong value, int shift)
+#if !(NETSTANDARD || NET20_OR_GREATER)
+            => BitOperations.RotateRight(value, shift);
+#else
+            => (value >> shift) | (value << (64 - shift));
+#endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint Fetch32(ReadOnlySpan<byte> value, int index = 0)
-            => BitConverter.ToUInt32(value[index..]);
+        private static uint ReadUnaligned32(ReadOnlySpan<byte> value, int index) => ReadUnaligned32(value.Slice(index));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong Fetch64(ReadOnlySpan<byte> value, int index = 0)
-            => BitConverter.ToUInt64(value[index..]);
+        private static uint ReadUnaligned32(ReadOnlySpan<byte> value)
+#if !NETSTANDARD
+            => BitConverterX.ReadUnaligned<uint>(value);
+#else
+            => BitConverter.ToUInt32(value);
+#endif
+
+        private static ulong ReadUnaligned64(ReadOnlySpan<byte> value, int index) => ReadUnaligned64(value.Slice(index));
+
+        private static ulong ReadUnaligned64(ReadOnlySpan<byte> value)
+#if !NETSTANDARD
+            => BitConverterX.ReadUnaligned<ulong>(value);
+#else
+            => BitConverter.ToUInt64(value);
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong ShiftMix(ulong val)
@@ -508,11 +524,8 @@ namespace AuroraLib.Cryptography.Helper
         private static ulong BSwap64(ulong value)
             => BitConverterX.Swap(value);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong HashLen16(ulong u, ulong v)
-            => Hash128to64(new UInt128(v, u));
-
         // Murmur-inspired hashing.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong HashLen16(ulong u, ulong v, ulong mul)
         {
             ulong a = (u ^ v) * mul;
@@ -522,6 +535,6 @@ namespace AuroraLib.Cryptography.Helper
             b *= mul;
             return b;
         }
-        #endregion
+#endregion
     }
 }

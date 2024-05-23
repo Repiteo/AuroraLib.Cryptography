@@ -1,10 +1,13 @@
 ﻿using AuroraLib.Cryptography.Helper;
 using AuroraLib.Interfaces;
+using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AuroraLib.Cryptography.Hash
 {
@@ -71,7 +74,11 @@ namespace AuroraLib.Cryptography.Hash
             try
             {
                 int bytes;
+#if NET20_OR_GREATER
+                while ((bytes = await stream.ReadAsync(buffer,0, buffer.Length).ConfigureAwait(false)) > 0)
+#else
                 while ((bytes = await stream.ReadAsync(buffer).ConfigureAwait(false)) > 0)
+#endif
                 {
                     hash.Compute(buffer.AsSpan(0, bytes));
                 }

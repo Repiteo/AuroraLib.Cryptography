@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace AuroraLib.Cryptography.Helper
 {
@@ -24,9 +26,9 @@ namespace AuroraLib.Cryptography.Helper
         /// <returns>A byte array representing the value.</returns>
         [DebuggerStepThrough]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] GetBytes<T>(ref T value) where T : unmanaged
+        public unsafe static byte[] GetBytes<T>(ref T value) where T : unmanaged
         {
-            byte[] result = new byte[Unsafe.SizeOf<T>()];
+            byte[] result = new byte[sizeof(T)];
             MemoryMarshal.Write(result, ref value);
             return result;
         }
@@ -35,6 +37,14 @@ namespace AuroraLib.Cryptography.Helper
         [DebuggerStepThrough]
         public static byte[] GetBytes<T>(T value) where T : unmanaged
             => GetBytes(ref value);
+
+
+#if !NETSTANDARD
+        [DebuggerStepThrough]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ReadUnaligned<T>(ReadOnlySpan<byte> value) where T : unmanaged
+        => Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(value));
+#endif
 
         /// <summary>
         /// Swaps the bytes in the 16-bit unsigned integer.
@@ -116,12 +126,49 @@ namespace AuroraLib.Cryptography.Helper
             return vaule;
         }
 
+        /// <summary>
+        /// Converts an instance of an unmanaged type to a span of bytes.
+        /// </summary>
+        /// <typeparam name="T">The type of the buffer.</typeparam>
+        /// <param name="buffer">The buffer to convert to bytes.</param>
+        /// <returns>A span of bytes representing the same memory as the original buffer.</returns>
         [DebuggerStepThrough]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<byte> AsBytes<T>(this ref T input) where T : unmanaged
+#if !(NETSTANDARD || NET20_OR_GREATER)
+        public static Span<byte> AsBytes<T>(this ref T buffer) where T : unmanaged
         {
-            ref byte tRef = ref Unsafe.As<T, byte>(ref input);
-            return MemoryMarshal.CreateSpan(ref tRef, Unsafe.SizeOf<T>());
+            ref byte bRef = ref Unsafe.As<T, byte>(ref buffer);
+            return MemoryMarshal.CreateSpan(ref bRef, Unsafe.SizeOf<T>());
         }
+#else
+        public unsafe static Span<byte> AsBytes<T>(this ref T buffer) where T : unmanaged
+        {
+            fixed (T* bytePtr = &buffer)
+            {
+                return new Span<byte>(bytePtr, sizeof(T));
+            }
+        }
+#endif
+
+#if NET20_OR_GREATER
+        /// <inheritdoc cref="Encoding.GetBytes(char*, int, byte*, int)"/>
+        public static unsafe int GetBytes(this Encoding encoding, ReadOnlySpan<char> chars, Span<byte> bytes)
+        {
+            fixed (char* charPtr = chars)
+            fixed (byte* bytePtr = bytes)
+            {
+                return encoding.GetBytes(charPtr, chars.Length, bytePtr, bytes.Length);
+            }
+        }
+
+        /// <inheritdoc cref="Encoding.GetByteCount(char[])"/>
+        public static unsafe int GetByteCount(this Encoding encoding, ReadOnlySpan<char> chars)
+        {
+            fixed (char* charPtr = chars)
+            {
+                return encoding.GetByteCount(charPtr, chars.Length);
+            }
+        }
+#endif
     }
 }

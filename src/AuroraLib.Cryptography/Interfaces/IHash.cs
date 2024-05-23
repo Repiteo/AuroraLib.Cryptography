@@ -1,4 +1,6 @@
-﻿namespace AuroraLib.Interfaces
+﻿using System;
+
+namespace AuroraLib.Interfaces
 {
     /// <summary>
     /// Represents a hash algorithm.

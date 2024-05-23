@@ -1,5 +1,6 @@
 ﻿using AuroraLib.Cryptography.Helper;
 using AuroraLib.Interfaces;
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -11,7 +12,7 @@ namespace AuroraLib.Cryptography.Hash
     public sealed class Crc32 : IHash<uint>
     {
         /// <inheritdoc />
-        public uint Value => _value ^= _xorOut;
+        public uint Value => _value ^ _xorOut;
         private uint _value;
 
         /// <inheritdoc />
@@ -98,7 +99,6 @@ namespace AuroraLib.Cryptography.Hash
 
         private static uint[] InitializeTable(uint polynomial, bool reverse)
         {
-            //use ArrayPool?
             uint[] polynomialTable = new uint[256];
             if (reverse)
             {

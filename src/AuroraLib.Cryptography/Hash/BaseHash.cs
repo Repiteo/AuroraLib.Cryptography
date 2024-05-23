@@ -1,9 +1,11 @@
 ﻿using AuroraLib.Interfaces;
+using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace AuroraLib.Cryptography.Hash
 {
+#if !NET20_OR_GREATER
     /// <summary>
     /// Can be used for any <see cref="HashAlgorithm"/> implementation.
     /// </summary>
@@ -48,4 +50,5 @@ namespace AuroraLib.Cryptography.Hash
             hashInstance.Initialize();
         }
     }
+#endif
 }

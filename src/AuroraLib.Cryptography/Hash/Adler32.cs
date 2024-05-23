@@ -1,5 +1,6 @@
 ﻿using AuroraLib.Cryptography.Helper;
 using AuroraLib.Interfaces;
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
