@@ -9,7 +9,7 @@
 	<AssemblyVersion>$(Version)</AssemblyVersion>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	<PackageTags>Hash Crc32 Adler32 Adler64 XXHash32 XXHash64 CityHash32 CityHash64 CityHash128</PackageTags>
+	<PackageTags>Hash Crc32 Adler32 Adler64 CityHash32 CityHash64 CityHash128 Fnv1</PackageTags>
 	<Description>A collection of different hash algorithms.</Description>
 	<Authors>Venomalia</Authors>
 	<PackageIcon>icon.png</PackageIcon>
