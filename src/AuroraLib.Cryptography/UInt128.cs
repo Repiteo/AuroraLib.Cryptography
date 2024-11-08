@@ -1,4 +1,7 @@
-﻿using System;
+﻿
+    // Not required in newer NET versions
+#if !NET8_0_OR_GREATER
+using System;
 using System.Globalization;
 
 namespace AuroraLib.Cryptography
@@ -27,7 +30,7 @@ namespace AuroraLib.Cryptography
 
             if (HexString.Length > 16)
             {
-#if NET20_OR_GREATER
+#if NET20_OR_GREATER || NETSTANDARD2_0
                 Low = ulong.Parse(HexString.Slice(HexString.Length - 16).ToString(), NumberStyles.HexNumber);
                 High = ulong.Parse(HexString.Slice(0, HexString.Length - 16).ToString(), NumberStyles.HexNumber);
 #else
@@ -37,7 +40,7 @@ namespace AuroraLib.Cryptography
             }
             else
             {
-#if NET20_OR_GREATER
+#if NET20_OR_GREATER || NETSTANDARD2_0
                 Low = ulong.Parse(HexString.ToString(), NumberStyles.HexNumber);
 #else
                 Low = ulong.Parse(HexString, NumberStyles.HexNumber);
@@ -54,7 +57,7 @@ namespace AuroraLib.Cryptography
 
         public UInt128(ReadOnlySpan<byte> value)
         {
-#if NET20_OR_GREATER
+#if NET20_OR_GREATER || NETSTANDARD2_0
             byte[] bytes = value.ToArray();
             Low = BitConverter.ToUInt64(bytes, 0);
             High = BitConverter.ToUInt64(bytes,value.Length -8);
@@ -175,3 +178,5 @@ namespace AuroraLib.Cryptography
         #endregion operators
     }
 }
+#endif
+

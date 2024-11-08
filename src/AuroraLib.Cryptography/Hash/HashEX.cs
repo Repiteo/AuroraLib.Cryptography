@@ -74,7 +74,7 @@ namespace AuroraLib.Cryptography.Hash
             try
             {
                 int bytes;
-#if NET20_OR_GREATER
+#if NET20_OR_GREATER || NETSTANDARD2_0
                 while ((bytes = await stream.ReadAsync(buffer,0, buffer.Length).ConfigureAwait(false)) > 0)
 #else
                 while ((bytes = await stream.ReadAsync(buffer).ConfigureAwait(false)) > 0)

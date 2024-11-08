@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace AuroraLib.Cryptography.Hash
 {
-#if !NET20_OR_GREATER
+#if !(NET20_OR_GREATER || NETSTANDARD2_0)
     /// <summary>
     /// Can be used for any <see cref="HashAlgorithm"/> implementation.
     /// </summary>
