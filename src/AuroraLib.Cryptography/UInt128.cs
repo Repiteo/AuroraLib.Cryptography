@@ -1,4 +1,4 @@
-﻿
+
     // Not required in newer NET versions
 #if !NET8_0_OR_GREATER
 using System;
@@ -69,11 +69,11 @@ namespace AuroraLib.Cryptography
 
         public override string ToString() => ToString("X", null);
 
-        public string ToString(IFormatProvider provider) => ToString(string.Empty, provider);
+        public string ToString(IFormatProvider? provider) => ToString(string.Empty, provider);
 
-        public string ToString(string format) => ToString(format, null);
+        public string ToString(string? format) => ToString(format, null);
 
-        public string ToString(string format, IFormatProvider provider)
+        public string ToString(string? format, IFormatProvider? provider)
         {
             if (High == 0)
                 return Low.ToString(format, provider);
@@ -86,7 +86,7 @@ namespace AuroraLib.Cryptography
             return this == other ? 0 : -1;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is UInt128 ui128 && ui128 == this;
 
         public bool Equals(UInt128 other)

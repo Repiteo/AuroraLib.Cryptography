@@ -1,4 +1,4 @@
-﻿using AuroraLib.Cryptography.Hash;
+using AuroraLib.Cryptography.Hash;
 using AuroraLib.Interfaces;
 using BenchmarkDotNet.Attributes;
 using System.Runtime.InteropServices;
@@ -9,10 +9,10 @@ namespace Benchmark.Benchmarks
     public class Cryptography
     {
         [Params(typeof(Adler32), typeof(Adler64), typeof(CityHash32), typeof(CityHash64), typeof(CityHash128), typeof(Crc32), typeof(Fnv1_32), typeof(Fnv1_64))]
-        public Type Algorithm;
-        public IHash Instance;
+        public Type Algorithm = null!;
+        public IHash Instance = null!;
 
-        public byte[] Data;
+        public byte[] Data = Array.Empty<byte>();
 
         [Params(10, 100)]
         public int MB;
@@ -20,7 +20,7 @@ namespace Benchmark.Benchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            Instance = (IHash)Activator.CreateInstance(Algorithm);
+            Instance = (IHash)Activator.CreateInstance(Algorithm)!;
             int bytes = 1024 * 1024;//1mb
             Data = new byte[bytes * MB];
             Random rng = new();
