@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<AssemblyTitle>AuroraLib.Cryptography</AssemblyTitle>
+    <AssemblyTitle>AuroraLib.Cryptography</AssemblyTitle>
     <TargetFrameworks>net8.0;net6.0;netstandard2.1;net472;</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>
-	<Title>AuroraLib.Cryptography</Title>
-	<Version>1.2.0.0</Version>
-	<AssemblyVersion>$(Version)</AssemblyVersion>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	<PackageTags>Hash Crc32 Adler32 Adler64 CityHash32 CityHash64 CityHash128 Fnv1</PackageTags>
-	<Description>A collection of different hash algorithms.</Description>
-	<Authors>Venomalia</Authors>
-	<PackageIcon>icon.png</PackageIcon>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<RepositoryUrl>https://github.com/Venomalia/AuroraLib.Cryptography</RepositoryUrl>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<PackageProjectUrl>https://github.com/Venomalia/AuroraLib.Cryptography</PackageProjectUrl>
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Title>AuroraLib.Cryptography</Title>
+    <Version>1.2.0.0</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageTags>Hash Crc32 Adler32 Adler64 CityHash32 CityHash64 CityHash128 Fnv1</PackageTags>
+    <Description>A collection of different hash algorithms.</Description>
+    <Authors>Venomalia</Authors>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Venomalia/AuroraLib.Cryptography</RepositoryUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/Venomalia/AuroraLib.Cryptography</PackageProjectUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,13 +31,13 @@
     </None>
   </ItemGroup>
 
-	<PropertyGroup>
-		<NETFrameworks>|netstandard2.0|net481|net48|net472|NET471|NET47|NET462|NET461|</NETFrameworks>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	</PropertyGroup>
+  <PropertyGroup>
+    <NETFrameworks>|netstandard2.0|net481|net48|net472|NET471|NET47|NET462|NET461|</NETFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
-	<ItemGroup Condition="$(NETFrameworks.Contains('|$(TargetFramework)|'))">
-		<PackageReference Include="System.Memory" Version="4.5.3" />
-	</ItemGroup>
-	
+  <ItemGroup Condition="$(NETFrameworks.Contains('|$(TargetFramework)|'))">
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
+
 </Project>
